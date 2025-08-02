@@ -1,27 +1,40 @@
-const express=require('express');
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
 
-const mongoose=require('mongoose');
+// Import Routes
+const productRoutes = require('./routes/productRoutes');
+const userRoutes = require('./routes/userRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const analyticsRoutes = require('./analytics/summaryRoute');
 
-const app=express();
+const app = express();
 
+// Middleware
 app.use(express.json());
 
-const PORT=3000;
-
-app.get('/',(req,res)=>{
-    console.log("hello");
-    
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
-mongoose.connect('mongodb://localhost:27017/ecommerce')
-app.use('/products',require('./routes/productRoute'));
-app.use('/order',require('./routes/orderRoute'));
-app.use('/user',require('./routes/userRoute'))
+// Base Routes
+app.use('/api/products', productRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
+// Default Route
+app.get('/', (req, res) => {
+  res.send('🚀 E-Commerce Product Order & Analytics API Running');
+});
 
-
-app.listen(PORT,()=>{
-    console.log(`server is connected to ${PORT}` );
-    
-})
-
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+});
